@@ -66,7 +66,8 @@
     "drizzle-kit": "0.31.9",
     "microsandbox": "^0.5.7",
     "tsx": "4.20.6",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vercel": "59.1.4"
   },
   "engines": {
     "node": ">=24"

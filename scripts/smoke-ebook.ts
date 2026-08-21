@@ -1,6 +1,6 @@
 import { access } from "node:fs/promises";
 import path from "node:path";
-import { buildEbookArtifact } from "../agent/tools/build_ebook.js";
+import { buildEbookArtifact } from "../agent/lib/ebook-artifact.js";
 import type { Ebook } from "../agent/lib/ebook.js";
 
 const chapterTopics = [
@@ -48,7 +48,7 @@ const book: Ebook = {
   })),
 };
 
-const artifact = await buildEbookArtifact(book);
+const artifact = await buildEbookArtifact(book, { cover: { mode: "designed" } });
 
 if (artifact.storage !== "local") {
   throw new Error(`Expected local storage during smoke test, received ${artifact.storage}.`);

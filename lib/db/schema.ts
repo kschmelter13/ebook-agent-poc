@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -10,6 +12,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { ClientSessionState, MessageStreamEvent } from "eve/client";
+import type { Ebook } from "@/agent/lib/ebook";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -98,6 +101,80 @@ export const chatEvent = pgTable(
   ],
 );
 
+export const ebook = pgTable(
+  "ebook",
+  {
+    id: text("id").primaryKey(),
+    ownerKey: text("owner_key").notNull(),
+    title: text("title").notNull(),
+    currentRevisionId: text("current_revision_id"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [index("idx_ebook_owner_updated").on(table.ownerKey, table.updatedAt)],
+);
+
+export const ebookRevisionStatus = ["pending", "complete", "failed"] as const;
+
+export const ebookRevision = pgTable(
+  "ebook_revision",
+  {
+    id: text("id").primaryKey(),
+    ebookId: text("ebook_id")
+      .notNull()
+      .references(() => ebook.id, { onDelete: "cascade" }),
+    parentRevisionId: text("parent_revision_id"),
+    revisionNumber: integer("revision_number").notNull(),
+    status: text("status", { enum: ebookRevisionStatus }).notNull().default("pending"),
+    source: jsonb("source").$type<Ebook>().notNull(),
+    contentHash: text("content_hash").notNull(),
+    changeSummary: text("change_summary").notNull(),
+    pageCount: integer("page_count"),
+    pdfUrl: text("pdf_url"),
+    sourceUrl: text("source_url"),
+    coverUrl: text("cover_url"),
+    coverSource: text("cover_source", { enum: ["ai", "designed", "reused"] }),
+    storage: text("storage", { enum: ["vercel-blob", "local"] }),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.ebookId, table.parentRevisionId],
+      foreignColumns: [table.ebookId, table.id],
+      name: "ebook_revision_parent_revision_id_fk",
+    }),
+    index("idx_ebook_revision_ebook_created").on(table.ebookId, table.createdAt),
+    uniqueIndex("idx_ebook_revision_number").on(table.ebookId, table.revisionNumber),
+    uniqueIndex("idx_ebook_revision_identity").on(table.ebookId, table.id),
+    check("ebook_revision_number_positive", sql`${table.revisionNumber} > 0`),
+    check(
+      "ebook_revision_parent_shape",
+      sql`(${table.revisionNumber} = 1 AND ${table.parentRevisionId} IS NULL) OR (${table.revisionNumber} > 1 AND ${table.parentRevisionId} IS NOT NULL)`,
+    ),
+    check(
+      "ebook_revision_page_count_range",
+      sql`${table.pageCount} IS NULL OR ${table.pageCount} BETWEEN 10 AND 50`,
+    ),
+    check(
+      "ebook_revision_status_shape",
+      sql`
+        (${table.status} = 'pending' AND ${table.completedAt} IS NULL AND ${table.errorMessage} IS NULL)
+        OR
+        (${table.status} = 'failed' AND ${table.completedAt} IS NULL AND ${table.errorMessage} IS NOT NULL)
+        OR
+        (${table.status} = 'complete' AND ${table.completedAt} IS NOT NULL AND ${table.errorMessage} IS NULL
+          AND ${table.pageCount} IS NOT NULL AND ${table.pdfUrl} IS NOT NULL
+          AND ${table.sourceUrl} IS NOT NULL AND ${table.coverSource} IS NOT NULL
+          AND ${table.storage} IS NOT NULL)
+      `,
+    ),
+  ],
+);
+
 export type Chat = typeof chat.$inferSelect;
 export type ChatEvent = typeof chatEvent.$inferSelect;
+export type EbookRecord = typeof ebook.$inferSelect;
+export type EbookRevision = typeof ebookRevision.$inferSelect;
 export type User = typeof user.$inferSelect;

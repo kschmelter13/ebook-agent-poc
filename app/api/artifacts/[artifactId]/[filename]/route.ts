@@ -5,6 +5,7 @@ const allowedFiles = new Map([
   ["ebook.pdf", "application/pdf"],
   ["source.json", "application/json"],
   ["cover.png", "image/png"],
+  ["cover.jpg", "image/jpeg"],
 ]);
 
 export async function GET(
@@ -14,7 +15,7 @@ export async function GET(
   const { artifactId, filename } = await params;
   const contentType = allowedFiles.get(filename);
 
-  if (!/^[a-f0-9]{16}$/.test(artifactId) || !contentType) {
+  if (!/^[a-f0-9]{16}(?:[a-f0-9]{16})?$/.test(artifactId) || !contentType) {
     return Response.json({ error: "Artifact not found" }, { status: 404 });
   }
 

@@ -17,6 +17,7 @@
     "dev": "next dev",
     "start": "next start",
     "test:ebook": "tsx scripts/smoke-ebook.ts",
+    "test:unit": "tsx --test agent/lib/*.test.ts",
     "typecheck": "next typegen && tsgo --noEmit -p tsconfig.json",
     "build:eve": "eve build",
     "dev:eve": "eve dev",

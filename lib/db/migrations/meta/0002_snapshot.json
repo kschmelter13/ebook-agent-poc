@@ -1,5 +1,5 @@
 {
-  "id": "b57e8b2d-257e-47f6-bb52-45ed8c319ab7",
+  "id": "f2e911d4-f88d-4104-8b9c-a11968d4275b",
   "prevId": "42f66cd0-3067-4c09-ae5f-755d093e46f7",
   "version": "7",
   "dialect": "postgresql",
@@ -552,27 +552,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "idx_ebook_revision_identity": {
-          "name": "idx_ebook_revision_identity",
-          "columns": [
-            {
-              "expression": "ebook_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -606,7 +585,16 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "ebook_revision_identity": {
+          "name": "ebook_revision_identity",
+          "nullsNotDistinct": false,
+          "columns": [
+            "ebook_id",
+            "id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {
         "ebook_revision_number_positive": {

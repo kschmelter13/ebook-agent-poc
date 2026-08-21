@@ -9,6 +9,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import type { ClientSessionState, MessageStreamEvent } from "eve/client";
@@ -147,7 +148,7 @@ export const ebookRevision = pgTable(
     }),
     index("idx_ebook_revision_ebook_created").on(table.ebookId, table.createdAt),
     uniqueIndex("idx_ebook_revision_number").on(table.ebookId, table.revisionNumber),
-    uniqueIndex("idx_ebook_revision_identity").on(table.ebookId, table.id),
+    unique("ebook_revision_identity").on(table.ebookId, table.id),
     check("ebook_revision_number_positive", sql`${table.revisionNumber} > 0`),
     check(
       "ebook_revision_parent_shape",

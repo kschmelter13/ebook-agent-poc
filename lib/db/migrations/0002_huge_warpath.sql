@@ -25,6 +25,7 @@ CREATE TABLE "ebook_revision" (
 	"error_message" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"completed_at" timestamp,
+	CONSTRAINT "ebook_revision_identity" UNIQUE("ebook_id","id"),
 	CONSTRAINT "ebook_revision_number_positive" CHECK ("ebook_revision"."revision_number" > 0),
 	CONSTRAINT "ebook_revision_parent_shape" CHECK (("ebook_revision"."revision_number" = 1 AND "ebook_revision"."parent_revision_id" IS NULL) OR ("ebook_revision"."revision_number" > 1 AND "ebook_revision"."parent_revision_id" IS NOT NULL)),
 	CONSTRAINT "ebook_revision_page_count_range" CHECK ("ebook_revision"."page_count" IS NULL OR "ebook_revision"."page_count" BETWEEN 10 AND 50),
@@ -44,5 +45,4 @@ ALTER TABLE "ebook_revision" ADD CONSTRAINT "ebook_revision_ebook_id_ebook_id_fk
 ALTER TABLE "ebook_revision" ADD CONSTRAINT "ebook_revision_parent_revision_id_fk" FOREIGN KEY ("ebook_id","parent_revision_id") REFERENCES "public"."ebook_revision"("ebook_id","id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "idx_ebook_owner_updated" ON "ebook" USING btree ("owner_key","updated_at");--> statement-breakpoint
 CREATE INDEX "idx_ebook_revision_ebook_created" ON "ebook_revision" USING btree ("ebook_id","created_at");--> statement-breakpoint
-CREATE UNIQUE INDEX "idx_ebook_revision_number" ON "ebook_revision" USING btree ("ebook_id","revision_number");--> statement-breakpoint
-CREATE UNIQUE INDEX "idx_ebook_revision_identity" ON "ebook_revision" USING btree ("ebook_id","id");
+CREATE UNIQUE INDEX "idx_ebook_revision_number" ON "ebook_revision" USING btree ("ebook_id","revision_number");
